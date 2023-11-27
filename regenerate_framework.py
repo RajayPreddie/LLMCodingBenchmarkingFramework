@@ -1,4 +1,5 @@
-import openai
+from openai import OpenAI
+import os
 
 PROBLEM_DEFINITION_PROMPT = """
 Create a Python implementation that can read, validate, and manipulate problem definitions based on a detailed JSON specification. The JSON specification outlines a structure for defining a problem, which includes various fields and nested objects. Here's a summary of the JSON structure:
@@ -99,6 +100,7 @@ Provide a script named `benchmark.py` to demonstrate how users can get started w
 python3 benchmark.py --base_path problem_sets/bugfixing/ --grade --model gpt-4 --grader performance correctness
 """
 
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 remainingInputs = [PROBLEM_DEFINITION_PROMPT, LLM_INPUT_PROMPT, LLM_OUTPUT_PROMPT, GRADER_PROMPT, OVERALL_PROMPT]
 messages = []
 
@@ -107,7 +109,7 @@ while len(remainingInputs) > 0:
 
 	messages.append({"role": "user", "content": input})
 	
-	response = openai.ChatCompletion.create(
+	response = client.chat.completions.create(
 		model="gpt-3.5-turbo-16k",
 		max_tokens=5000,
 		messages = messages)

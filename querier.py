@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Union, Optional, Any
 from base_types import *
-import openai
+from openai import OpenAI
 import os
 import sys
 import subprocess
 import re
-
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 class AIModelQuerier(ABC):
 	"""
 	Abstract base class for AI models.
@@ -109,7 +109,7 @@ class OpenAIModelQuerier(AIModelQuerier):
 		# Make sure this key is set before trying to interact with the OpenAI API
 		if 'OPENAI_API_KEY' in os.environ:
 			try:
-				response = openai.Model.list()
+				response = OpenAI.Model.list()
 				return [item['id'] for item in response['data']]
 			except:
 				print("Unable to fetch OpenAI supported models.")
@@ -146,7 +146,7 @@ class OpenAIModelQuerier(AIModelQuerier):
 		# Send the prompt to the OpenAI API
 		if self.is_chat_based_model():
 			messages = [{"role": "user", "content": prompt}]
-			response = openai.ChatCompletion.create(
+			response = client.chat.completions.create(
 				model=self.model_identifier,
 				max_tokens=1000,
 				messages = messages)
@@ -155,14 +155,14 @@ class OpenAIModelQuerier(AIModelQuerier):
 			response = response.choices[0].message.content
 			
 		else:		
-			response = openai.Completion.create(
+			response = client.chat.completions.create(
 				engine=self.model_identifier,
 				prompt=prompt,
 				max_tokens=1000
 			)
 			
 			# Extract the generated code
-			response = response.choices[0].text
+			response = response.choices[0].message.content
 
 		print(f"***Response:\n{response}")
 		solution = self.extract_code(response)
